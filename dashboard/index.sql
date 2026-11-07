@@ -1,15 +1,23 @@
 SELECT 'shell' AS component,
-       'SmolLM · SQL Studio' AS title,
-       'SmolLM · SQL Studio' AS navbar_title;
+       'SmolLM / SQL — Local inference studio' AS title,
+       'SMOLLM / SQL' AS navbar_title,
+       'database' AS icon,
+       '/theme.css' AS css,
+       'Run SmolLM-135M locally with an inference engine written in SQL.' AS description,
+       'Local inference · Built with SQLPage' AS footer;
 
 SELECT 'text' AS component,
-       'SmolLM-135M SQL Studio' AS title,
-       'Write a prompt and run the model in your local SQLite database.' AS contents;
+       'SmolLM-135M' AS title,
+       'A language model running inside SQLite. Enter a prompt, choose how many tokens to generate, and watch the output arrive.' AS contents;
+
+SELECT 'html' AS component,
+       '<div class="workspace-grid"><section class="workspace-input">' AS html;
 
 SELECT 'form' AS component,
        'run.sql' AS action,
-       'New prompt' AS title,
-       'Run inference' AS validate;
+       '01 / PROMPT' AS title,
+       'Run model' AS validate,
+       'prompt-panel' AS class;
 SELECT 'prompt' AS name,
        'Prompt' AS label,
        'textarea' AS type,
@@ -26,17 +34,21 @@ SELECT 'tokens' AS name,
        1 AS step,
        'Choose 1–8. Each token takes about 45 seconds on the tested machine.' AS description;
 
-SELECT 'text' AS component, 'Current session' AS title;
+SELECT 'html' AS component,
+       '</section><section class="workspace-output">' AS html;
+
+SELECT 'text' AS component, '02 / OUTPUT' AS title;
 SELECT CASE WHEN EXISTS (SELECT 1 FROM generated)
             THEN 'Prompt: ' || (SELECT text FROM prompt_input ORDER BY prompt_id DESC LIMIT 1)
             ELSE 'No output yet. Enter a prompt above to start.'
        END AS contents;
 
-SELECT 'code' AS component WHERE EXISTS (SELECT 1 FROM generated);
+SELECT 'code' AS component, 'result-console' AS class
+WHERE EXISTS (SELECT 1 FROM generated);
 SELECT 'Generated text' AS title, text AS contents
 FROM generated_text WHERE EXISTS (SELECT 1 FROM generated);
 
-SELECT 'button' AS component;
+SELECT 'button' AS component, 'session-actions' AS class;
 SELECT 'Generate one more token' AS title,
        'next.sql' AS link,
        'plus' AS icon,
@@ -48,9 +60,11 @@ SELECT 'Reset session' AS title,
 WHERE EXISTS (SELECT 1 FROM generated);
 
 SELECT 'text' AS component;
-SELECT 'Each click advances the SQL engine by one token. A token may be part of a word; the output above shows decoded text.' AS contents;
+SELECT 'Tokens can be whole words or word fragments. The output panel shows the decoded text.' AS contents;
 
-SELECT 'card' AS component, 3 AS columns;
+SELECT 'html' AS component, '</section></div>' AS html;
+
+SELECT 'card' AS component, 3 AS columns, 'metric-row' AS class;
 SELECT '135M' AS title, 'model parameters' AS description, 'database' AS icon;
 SELECT '30' AS title, 'transformer layers' AS description;
 SELECT 'SQL' AS title, 'tokenization through decoding' AS description, 'code' AS icon;

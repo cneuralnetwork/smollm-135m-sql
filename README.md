@@ -73,7 +73,9 @@ If you have the local Codex deliverable, a verified SQLPage binary is also inclu
 ./.local/bin/sqlpage --config-dir dashboard_config
 ```
 
-Open **[http://127.0.0.1:8080](http://127.0.0.1:8080)**. Enter a prompt, choose 1–8 output tokens, and click **Run inference**. Decoded text appears as each token finishes. You can then generate one more token or reset the session. Stop the server with `Ctrl+C`. Run only one inference session against the database at a time; stop a terminal stream before using the dashboard.
+Open **[http://127.0.0.1:8080](http://127.0.0.1:8080)**. Enter a prompt, choose 1–8 output tokens, and click **Run model**. Decoded text appears as each token finishes. You can then generate one more token or reset the session. Stop the server with `Ctrl+C`. Run only one inference session against the database at a time; stop a terminal stream before using the dashboard.
+
+Run SQLPage from the repository root: the database path in `dashboard_config/sqlpage.json` is relative to that directory. If a page reports `no such table: generation_request`, check that `outputs/smollm.db` is the initialized model database and rerun `outputs/setup.sql` if needed. Do not use the dashboard against an empty SQLite file.
 
 The server listens only on `127.0.0.1`, and its web root is the `dashboard/` folder, separate from the model database and configuration.
 
