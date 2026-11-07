@@ -45,9 +45,11 @@ UPDATE inference_settings SET last_layer = 29, emit_logits = 1 WHERE id = 1;
 COMMIT;
 
 INSERT INTO prompt_input(prompt_id, text) VALUES (1, :prompt);
-CREATE TEMP TABLE dashboard_cursor (printed_bytes INTEGER NOT NULL);
+-- SQLPage can reuse this connection, so reset its TEMP cursor every run.
+CREATE TEMP TABLE IF NOT EXISTS dashboard_cursor (printed_bytes INTEGER NOT NULL);
+DELETE FROM dashboard_cursor;
 INSERT INTO dashboard_cursor VALUES (0);
-CREATE TEMP VIEW dashboard_delta AS
+CREATE TEMP VIEW IF NOT EXISTS dashboard_delta AS
 SELECT CAST(substr(CAST(g.text AS BLOB), c.printed_bytes + 1) AS TEXT) AS text
 FROM generated_text AS g CROSS JOIN dashboard_cursor AS c
 WHERE length(CAST(g.text AS BLOB)) > c.printed_bytes;
