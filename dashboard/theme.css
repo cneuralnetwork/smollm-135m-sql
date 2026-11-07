@@ -265,6 +265,21 @@ body.layout-boxed {
   line-height: 1.5;
 }
 
+.live-output > p:first-of-type {
+  min-height: 185px;
+  margin-top: 0;
+  color: #f7f9ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.2rem;
+  line-height: 1.7;
+}
+
+.live-output:not(:has(.result-console)) > p:first-of-type::after {
+  content: "▌";
+  color: #85a4ff;
+  animation: blink 1s steps(1) infinite;
+}
+
 .metric-row { margin-top: 32px !important; }
 .metric-row .card {
   min-height: 120px;
@@ -300,6 +315,7 @@ body.layout-boxed {
   .workspace-grid { grid-template-columns: 1fr; gap: 16px; }
   .prompt-panel .form-fieldset, .workspace-output, .run-output { padding: 23px; border-radius: 18px; }
   .workspace-output { min-height: 280px; }
+  .live-output > p:first-of-type { min-height: 120px; }
   .metric-row { margin-top: 18px !important; }
 }
 

@@ -6,8 +6,36 @@ SELECT 'shell' AS component,
        '/theme.css' AS css,
        'Local inference · Built with SQLPage' AS footer;
 SELECT 'text' AS component,
-       'Generating in SQL' AS title,
-       'The model is working in SQLite. Decoded text will appear below, one token at a time.' AS contents;
+       'SmolLM-135M' AS title,
+       'The model is working in SQLite. Decoded text appears beside your prompt, one token at a time.' AS contents;
+
+SELECT 'html' AS component,
+       '<div class="workspace-grid"><section class="workspace-input">' AS html;
+
+SELECT 'form' AS component,
+       'run.sql' AS action,
+       '01 / PROMPT' AS title,
+       'Run again' AS validate,
+       'prompt-panel' AS class;
+SELECT 'prompt' AS name,
+       'Prompt' AS label,
+       'textarea' AS type,
+       4 AS rows,
+       :prompt AS value,
+       true AS required,
+       'Edit the prompt and run again after this generation finishes.' AS description;
+SELECT 'tokens' AS name,
+       'Output tokens' AS label,
+       'number' AS type,
+       coalesce(CAST(:tokens AS INTEGER), 2) AS value,
+       1 AS min,
+       8 AS max,
+       1 AS step,
+       'Choose 1–8 output tokens.' AS description;
+
+SELECT 'html' AS component,
+       '</section><section class="workspace-output live-output">' AS html;
+SELECT 'text' AS component, '02 / LIVE OUTPUT' AS title;
 
 -- Clear one inference session; keep imported model and tokenizer data.
 BEGIN;
@@ -59,8 +87,6 @@ SELECT CAST(substr(CAST(g.text AS BLOB), c.printed_bytes + 1) AS TEXT) AS text
 FROM generated_text AS g CROSS JOIN dashboard_cursor AS c
 WHERE length(CAST(g.text AS BLOB)) > c.printed_bytes;
 
-SELECT 'html' AS component, '<section class="run-output">' AS html;
-SELECT 'text' AS component, 'LIVE OUTPUT' AS title;
 INSERT INTO prompt_run(prompt_id) VALUES (1);
 SELECT text AS contents FROM dashboard_delta;
 UPDATE dashboard_cursor SET printed_bytes =
@@ -126,4 +152,4 @@ SELECT 'Generate one more token' AS title,
        'primary' AS color
 WHERE (SELECT next_token_id FROM generated ORDER BY pos DESC LIMIT 1) <> 0;
 SELECT 'Back to studio' AS title, 'index.sql' AS link, 'arrow-left' AS icon;
-SELECT 'html' AS component, '</section>' AS html;
+SELECT 'html' AS component, '</section></div>' AS html;
