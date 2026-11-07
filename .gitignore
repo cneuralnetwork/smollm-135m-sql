@@ -1,0 +1,14 @@
+# Downloaded model data and generated SQLite databases
+/outputs/model.safetensors
+/outputs/config.json
+/outputs/tokenizer.json
+/outputs/UnicodeData.txt
+/outputs/*.db
+/outputs/*.db-*
+/outputs/*.sqlite
+/outputs/*.sqlite-*
+
+# Local editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
