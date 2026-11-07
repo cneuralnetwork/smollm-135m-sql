@@ -1,0 +1,6 @@
+{
+  "listen_on": "127.0.0.1:8080",
+  "database_url": "sqlite://outputs/smollm.db?mode=rw",
+  "web_root": "dashboard",
+  "max_database_pool_connections": 1
+}

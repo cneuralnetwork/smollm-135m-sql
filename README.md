@@ -58,6 +58,25 @@ The stream begins like this, with new text appearing after each inference step:
 
 The stream prints text chunks, never numeric token IDs. Each chunk appears on its own line; a chunk can be a word, punctuation, or a word fragment because the model uses subword tokens. Edit the prompt in `outputs/stream.sql` to try another input, or remove or repeat its generation blocks to change the output length. The script resets inference state at the start, so you can rerun it directly. If you received this project as a local Codex deliverable, `outputs/smollm.db` may already be built. In a GitHub clone, build the database as shown above.
 
+### Run the browser dashboard
+
+The dashboard uses [SQLPage](https://sql-page.com/) to turn SQL files into a local web app. The authored dashboard and the inference engine are SQL; SQLPage supplies the web server and browser controls. Build `outputs/smollm.db` first, then from the repository root run:
+
+```sh
+brew install sqlpage                 # macOS; other systems: SQLPage releases
+sqlpage --config-dir dashboard_config
+```
+
+If you have the local Codex deliverable, a verified SQLPage binary is also included outside Git:
+
+```sh
+./.local/bin/sqlpage --config-dir dashboard_config
+```
+
+Open **[http://127.0.0.1:8080](http://127.0.0.1:8080)**. Enter a prompt, choose 1–8 output tokens, and click **Run inference**. Decoded text appears as each token finishes. You can then generate one more token or reset the session. Stop the server with `Ctrl+C`. Run only one inference session against the database at a time; stop a terminal stream before using the dashboard.
+
+The server listens only on `127.0.0.1`, and its web root is the `dashboard/` folder, separate from the model database and configuration.
+
 ### Generate from your own prompt
 
 Reset the inference state between prompts, then open the SQLite shell:
@@ -111,6 +130,8 @@ The next major speed target is storage layout: SQLite still visits roughly 135 m
 
 ```text
 README.md
+dashboard/             SQLPage pages: prompt, live output, next token, reset
+dashboard_config/      local-only server settings and SQLite connection setup
 outputs/
   setup.sql           schema, import, tokenizer, and inference engine
   accelerate.sql      one-time numeric weight materialization
