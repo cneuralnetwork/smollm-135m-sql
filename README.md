@@ -1,6 +1,6 @@
 # SmolLM-135M, entirely in SQL
 
-> A real 135M parameter language model running inside SQLite. Tokenization, transformer math, attention, KV caching, and greedy text generation are SQL statements, views, and triggers.
+> A real 135M parameter language model running inside SQLite. Tokenization, transformer math, attention, KV caching, and greedy text generation are SQL statements, views, and triggers. Its CLI example streams decoded text as it runs.
 
 This project loads the official [HuggingFaceTB/SmolLM-135M](https://huggingface.co/HuggingFaceTB/SmolLM-135M) weights directly from `safetensors` into SQLite. The inference engine uses no Python, JavaScript, extensions, or host language functions. The `sqlite3` command line program is just the SQL runner.
 
@@ -45,18 +45,18 @@ sqlite3 outputs/smollm.db < outputs/setup.sql
 # This is slow but resumable: rerun the command if interrupted.
 sqlite3 outputs/smollm.db < outputs/accelerate.sql
 
-# Generate one token from "Hello".
-sqlite3 outputs/smollm.db < outputs/example.sql
+# Stream eight decoded output chunks from "Hello" (one chunk per line).
+sqlite3 outputs/smollm.db < outputs/stream.sql
 ```
 
-Expected output from `example.sql`:
+The stream begins like this, with new text appearing after each inference step:
 
 ```text
-28
 ,
+ I
 ```
 
-The first line is the predicted token ID; the second is the decoded text. If you received this project as a local Codex deliverable, `outputs/smollm.db` may already be built, so you can run `example.sql` directly. In a GitHub clone, build the database as shown above.
+The stream prints text chunks, never numeric token IDs. Each chunk appears on its own line; a chunk can be a word, punctuation, or a word fragment because the model uses subword tokens. Edit the prompt in `outputs/stream.sql` to try another input, or remove or repeat its generation blocks to change the output length. The script resets inference state at the start, so you can rerun it directly. If you received this project as a local Codex deliverable, `outputs/smollm.db` may already be built. In a GitHub clone, build the database as shown above.
 
 ### Generate from your own prompt
 
@@ -102,7 +102,8 @@ README.md
 outputs/
   setup.sql           schema, import, tokenizer, and inference engine
   accelerate.sql      one-time numeric weight materialization
-  example.sql         first-token example
+  stream.sql          incremental decoded text, eight output tokens
+  example.sql         first-token text example
   15_reset.sql        clear prompt, generation, and KV state
   00_*.sql … 18_*.sql component SQL sources
   config.json         download separately; ignored by Git
