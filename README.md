@@ -95,6 +95,18 @@ SELECT text FROM generated_text;
 
 `outputs/setup.sql` is the combined, runnable setup. The numbered SQL files hold the same components separately for inspection and experiments. `outputs/accelerate.sql` materializes numeric weights for practical inference; it does not change the model.
 
+### Speed
+
+The accelerated matrix multiply scans one weight row at a time. This avoids a temporary `GROUP BY` tree for every projection. On one local test of the `Hello` first-token example, it reduced runtime from about 90 seconds to 44 seconds while producing the same output. Results depend on the machine and disk cache.
+
+Fresh databases get this trigger from `accelerate.sql`. To upgrade a database built from an earlier version of this repository, run the following **after any active inference finishes**:
+
+```sh
+sqlite3 outputs/smollm.db < outputs/19_rowwise_matmul.sql
+```
+
+The next major speed target is storage layout: SQLite still visits roughly 135 million individual numeric weight rows per generated token. Compact row blocks or quantized weights could reduce that cost, though they need careful accuracy checks.
+
 ## Files
 
 ```text
@@ -105,6 +117,7 @@ outputs/
   stream.sql          incremental decoded text, eight output tokens
   example.sql         first-token text example
   15_reset.sql        clear prompt, generation, and KV state
+  19_rowwise_matmul.sql upgrade an existing accelerated database
   00_*.sql … 18_*.sql component SQL sources
   config.json         download separately; ignored by Git
   tokenizer.json      download separately; ignored by Git

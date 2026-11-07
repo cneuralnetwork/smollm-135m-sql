@@ -1021,6 +1021,7 @@ JOIN tensor_identity AS t ON t.name = r.name
 JOIN weight_real AS w
   ON w.tensor_id = t.tensor_id AND w.linear_index = r.linear_index;
 -- Replace the raw-byte matmul trigger after 17_activate_real.sql.
+-- A range scan per output row avoids a temporary GROUP BY B-tree.
 DROP TRIGGER IF EXISTS run_matrix_job;
 CREATE TRIGGER run_matrix_job
 AFTER INSERT ON matrix_job
@@ -1035,19 +1036,26 @@ BEGIN
        WHERE name = NEW.tensor_name);
   DELETE FROM matrix_output;
   INSERT INTO matrix_output(dim, value)
-  SELECT CAST(w.linear_index / json_extract(t.shape, '$[1]') AS INTEGER),
-         sum(w.value * i.value)
-  FROM tensor_identity AS id
-  JOIN tensor AS t ON t.name = id.name
-  JOIN weight_real AS w
-    ON w.tensor_id = id.tensor_id
-   AND w.linear_index >= NEW.first_row * json_extract(t.shape, '$[1]')
-   AND w.linear_index < coalesce(NEW.end_row,
-       json_extract(t.shape, '$[0]')) * json_extract(t.shape, '$[1]')
-  JOIN matrix_input AS i
-    ON i.dim = w.linear_index % json_extract(t.shape, '$[1]')
-  WHERE id.name = NEW.tensor_name
-  GROUP BY 1;
+  WITH RECURSIVE spec AS (
+    SELECT id.tensor_id, json_extract(t.shape, '$[0]') AS output_rows,
+           json_extract(t.shape, '$[1]') AS cols
+    FROM tensor_identity AS id JOIN tensor AS t ON t.name = id.name
+    WHERE id.name = NEW.tensor_name
+  ), rows(r) AS (
+    SELECT NEW.first_row
+    UNION ALL
+    SELECT r + 1 FROM rows
+    WHERE r + 1 < coalesce(NEW.end_row,
+      (SELECT output_rows FROM spec))
+  )
+  SELECT r,
+    (SELECT sum(w.value * i.value)
+     FROM weight_real AS w
+     JOIN matrix_input AS i ON i.dim = w.linear_index - r * spec.cols
+     WHERE w.tensor_id = spec.tensor_id
+       AND w.linear_index >= r * spec.cols
+       AND w.linear_index < (r + 1) * spec.cols)
+  FROM rows CROSS JOIN spec;
   SELECT RAISE(ABORT, 'matrix output row mismatch')
   WHERE (SELECT count(*) FROM matrix_output) <>
     (coalesce(NEW.end_row,
