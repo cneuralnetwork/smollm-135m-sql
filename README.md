@@ -25,6 +25,9 @@ embedding → 30 transformer layers → final norm → 49,152 logits
 Run all commands from the repository root. You need the `sqlite3` CLI with `readfile()`, JSON, math functions, and `unhex()`; this was tested with SQLite 3.51. You also need about 6 GB of free disk space and considerable patience: the one-time weight conversion is lengthy, and generation takes roughly a minute or more per token on the tested machine.
 
 ```sh
+git clone https://github.com/cneuralnetwork/smollm-135m-sql.git
+cd smollm-135m-sql
+
 # Get the upstream data (kept outside Git).
 curl -L --fail --output outputs/model.safetensors \
   https://huggingface.co/HuggingFaceTB/SmolLM-135M/resolve/main/model.safetensors
